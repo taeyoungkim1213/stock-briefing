@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: stock-briefing
+kakao:
+  rest-api-key: YOUR_REST_API_KEY
+  client-secret: YOUR_CLIENT_SECRET
+  access-token: YOUR_ACCESS_TOKEN
+  refresh-token: YOUR_REFRESH_TOKEN
