@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  secrets: write               # KAKAO_REFRESH_TOKEN 자동 갱신용
 
 jobs:
   briefing:
