@@ -25,8 +25,9 @@ public class KakaoMessageService {
     private final ObjectMapper objectMapper;
 
     public Mono<String> sendMessage(String text) {
+        String truncated = text.length() > 1000 ? text.substring(0, 997) + "..." : text;
         return kakaoTokenService.getValidAccessToken()
-                .flatMap(accessToken -> doSend(accessToken, text));
+                .flatMap(accessToken -> doSend(accessToken, truncated));
     }
 
     private Mono<String> doSend(String accessToken, String text) {

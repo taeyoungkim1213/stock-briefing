@@ -21,15 +21,14 @@ import java.util.regex.Pattern;
 public class NaverStockService {
 
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-    private static final String KOSPI_URL = "https://finance.naver.com/sise/sise_index.naver?code=KOSPI";
-    private static final String KOSDAQ_URL = "https://finance.naver.com/sise/sise_index.naver?code=KOSDAQ";
+    private static final String INDEX_URL = "https://finance.naver.com/sise/sise_index.naver?code=";
     private static final String STOCK_URL = "https://finance.naver.com/item/main.naver?code=";
 
     private final WebClient webClient;
 
     public Mono<List<StockData>> getMarketSummary() {
-        Mono<StockData> kospi = fetchIndex("KOSPI", KOSPI_URL);
-        Mono<StockData> kosdaq = fetchIndex("KOSDAQ", KOSDAQ_URL);
+        Mono<StockData> kospi = fetchIndex("KOSPI", INDEX_URL + "KOSPI");
+        Mono<StockData> kosdaq = fetchIndex("KOSDAQ", INDEX_URL + "KOSDAQ");
         Mono<StockData> samsung = fetchStock("삼성전자", "005930");
         Mono<StockData> skHynix = fetchStock("SK하이닉스", "000660");
         Mono<StockData> naver = fetchStock("NAVER", "035420");
@@ -65,8 +64,6 @@ public class NaverStockService {
                 .bodyToMono(String.class);
     }
 
-    // HTML 구조: <em id="now_value">8,639.41</em>
-    //           <span id="change_value_and_rate"><span>162.08</span> -1.84%<span class="blind">상승</span></span>
     private StockData parseIndex(String name, String html) {
         Document doc = Jsoup.parse(html);
 
@@ -78,27 +75,19 @@ public class NaverStockService {
         String changeRate = "N/A";
 
         if (flucEl != null) {
-            // 직접 자식 요소만 순회해 blind 클래스 없는 첫 번째 span의 텍스트 추출
             change = flucEl.children().stream()
                     .filter(e -> !e.hasClass("blind"))
                     .findFirst()
                     .map(Element::text)
                     .orElse("N/A");
-            // ownText()로 " -1.84%" 같은 rate 부분 추출
             String own = flucEl.ownText().trim();
             Matcher m = Pattern.compile("[+\\-]?\\d+\\.\\d+%").matcher(own);
-            if (m.find()) {
-                changeRate = m.group();
-            }
+            if (m.find()) changeRate = m.group();
         }
 
-        log.debug("Index {} - price:{}, change:{}, rate:{}", name, price, change, changeRate);
         return new StockData(name, price, change, changeRate);
     }
 
-    // HTML 구조: <p class="no_today"><em class="no_down|no_up"><span class="blind">351,500</span>...</em></p>
-    //           <p class="no_exday"><em><span class="ico down|up">하락|상승</span><span class="blind">9,000</span></em>
-    //                               <em><span class="blind">2.50</span><span class="per">%</span></em></p>
     private StockData parseStock(String name, String html) {
         Document doc = Jsoup.parse(html);
 
@@ -112,10 +101,9 @@ public class NaverStockService {
         }
 
         Elements blindSpans = doc.select(".no_exday em span.blind");
-        String change = blindSpans.size() > 0 ? sign + blindSpans.get(0).text() : "N/A";
+        String change = !blindSpans.isEmpty() ? sign + blindSpans.get(0).text() : "N/A";
         String changeRate = blindSpans.size() > 1 ? sign + blindSpans.get(1).text() + "%" : "N/A";
 
-        log.debug("Stock {} - price:{}, change:{}, rate:{}", name, price, change, changeRate);
         return new StockData(name, price, change, changeRate);
     }
 }
