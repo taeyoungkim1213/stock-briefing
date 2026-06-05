@@ -1,0 +1,4 @@
+pykrx>=1.0.47
+yfinance>=0.2.36
+pandas>=2.0.0
+beautifulsoup4>=4.12.0
