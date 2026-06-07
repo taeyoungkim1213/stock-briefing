@@ -132,7 +132,7 @@ def get_kakao_access_token():
 
 
 def send_kakao_message(text, access_token):
-    truncated = text[:997] + "..." if len(text) > 1000 else text
+    truncated = text[:2997] + "..." if len(text) > 3000 else text
     template = {
         "object_type": "text",
         "text": truncated,
@@ -187,7 +187,10 @@ def call_gemini(domestic, us, news):
         headers={"Content-Type": "application/json"},
         json={
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"maxOutputTokens": 1024},
+            "generationConfig": {
+                "maxOutputTokens": 8192,
+                "thinkingConfig": {"thinkingBudget": 0},
+            },
         },
         timeout=60,
     )
