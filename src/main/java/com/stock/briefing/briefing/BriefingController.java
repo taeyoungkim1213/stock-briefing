@@ -8,14 +8,13 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/test")
 @RequiredArgsConstructor
 public class BriefingController {
 
     private final StockBriefingScheduler stockBriefingScheduler;
 
     @GetMapping("/briefing")
-    public Mono<String> testBriefing() {
+    public Mono<String> runBriefing() {
         return stockBriefingScheduler.runBriefing();
     }
 }
