@@ -152,7 +152,7 @@ def send_kakao_message(text, access_token):
     print(f"[INFO] 카카오톡 전송 완료: {resp.json()}", file=sys.stderr)
 
 
-# ── Claude ──────────────────────────────────────────────────────────────────
+# ── Gemini ──────────────────────────────────────────────────────────────────
 
 def format_stock_items(items, is_kr):
     grouped = {}
@@ -171,7 +171,7 @@ def format_stock_items(items, is_kr):
     return "\n".join(lines).strip() or "데이터 없음"
 
 
-def call_claude(domestic, us, news):
+def call_gemini(domestic, us, news):
     date_str = datetime.now().strftime("%Y년 %m월 %d일")
     news_text = "\n".join(f"- {n}" for n in news) if news else "뉴스 데이터 없음"
 
@@ -182,23 +182,19 @@ def call_claude(domestic, us, news):
               .replace("{date}",        date_str))
 
     resp = requests.post(
-        "https://api.anthropic.com/v1/messages",
-        headers={
-            "x-api-key":         os.environ["ANTHROPIC_API_KEY"],
-            "anthropic-version": "2023-06-01",
-            "Content-Type":      "application/json",
-        },
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        params={"key": os.environ["GEMINI_API_KEY"]},
+        headers={"Content-Type": "application/json"},
         json={
-            "model":      "claude-sonnet-4-6",
-            "max_tokens": 1024,
-            "messages":   [{"role": "user", "content": prompt}],
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"maxOutputTokens": 1024},
         },
         timeout=60,
     )
     data = resp.json()
     if "error" in data:
-        raise RuntimeError(f"Claude API 오류: {data['error']['message']}")
-    return data["content"][0]["text"]
+        raise RuntimeError(f"Gemini API 오류: {data['error']['message']}")
+    return data["candidates"][0]["content"]["parts"][0]["text"]
 
 
 # ── 메인 ────────────────────────────────────────────────────────────────────
@@ -215,8 +211,8 @@ def main():
     news = get_news()
     print(f"[INFO] 뉴스 {len(news)}개 수집", file=sys.stderr)
 
-    briefing = call_claude(domestic, us, news)
-    print(f"[INFO] Claude 분석 완료 ({len(briefing)}자)", file=sys.stderr)
+    briefing = call_gemini(domestic, us, news)
+    print(f"[INFO] Gemini 분석 완료 ({len(briefing)}자)", file=sys.stderr)
 
     access_token = get_kakao_access_token()
     send_kakao_message(briefing, access_token)
