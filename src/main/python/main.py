@@ -182,7 +182,7 @@ def call_gemini(domestic, us, news):
               .replace("{date}",        date_str))
 
     resp = requests.post(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
         params={"key": os.environ["GEMINI_API_KEY"]},
         headers={"Content-Type": "application/json"},
         json={
