@@ -2,7 +2,7 @@ name: Daily Stock Briefing
 
 on:
   schedule:
-    - cron: '0 23 * * 0-4'   # 평일 23:00 UTC = 한국시간 08:00
+    - cron: '0 22 * * 0-4'   # 평일 22:00 UTC = 한국시간 07:00 (지연 감안 실제 도착 ~08:00)
   workflow_dispatch: {}        # 수동 실행 (테스트용)
 
 permissions:
